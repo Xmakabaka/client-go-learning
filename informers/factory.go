@@ -107,11 +107,13 @@ func WithTransform(transform cache.TransformFunc) SharedInformerOption {
 	}
 }
 
+// 初始化共享informer
 // NewSharedInformerFactory constructs a new instance of sharedInformerFactory for all namespaces.
 func NewSharedInformerFactory(client kubernetes.Interface, defaultResync time.Duration) SharedInformerFactory {
 	return NewSharedInformerFactoryWithOptions(client, defaultResync)
 }
 
+// 带参数初始化共享informer,闭包初始化
 // NewFilteredSharedInformerFactory constructs a new instance of sharedInformerFactory.
 // Listers obtained via this SharedInformerFactory will be subject to the same filters
 // as specified here.
