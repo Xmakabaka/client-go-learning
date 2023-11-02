@@ -141,6 +141,7 @@ func NewSharedInformerFactoryWithOptions(client kubernetes.Interface, defaultRes
 	return factory
 }
 
+// 启动 informer
 func (f *sharedInformerFactory) Start(stopCh <-chan struct{}) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
@@ -165,6 +166,7 @@ func (f *sharedInformerFactory) Start(stopCh <-chan struct{}) {
 	}
 }
 
+// 停止 informer
 func (f *sharedInformerFactory) Shutdown() {
 	f.lock.Lock()
 	f.shuttingDown = true
@@ -175,6 +177,7 @@ func (f *sharedInformerFactory) Shutdown() {
 }
 
 func (f *sharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool {
+	// 闭包函数可以避免死锁,这是一次 deepCopy
 	informers := func() map[reflect.Type]cache.SharedIndexInformer {
 		f.lock.Lock()
 		defer f.lock.Unlock()

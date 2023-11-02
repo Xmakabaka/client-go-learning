@@ -1,12 +1,6 @@
 module k8s.io/client-go
 
-<<<<<<< HEAD
 go 1.20
-
-
-replace github.com/imdario/mergo v1.0.0 => dario.cat/mergo v1.0.0
-=======
-go 1.21.3
 
 require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
@@ -68,4 +62,4 @@ replace (
 	k8s.io/api => k8s.io/api v0.0.0-20231101171312-cd0ecb048ea5
 	k8s.io/apimachinery => k8s.io/apimachinery v0.0.0-20231101171057-16d50e6708ce
 )
->>>>>>> master
+
