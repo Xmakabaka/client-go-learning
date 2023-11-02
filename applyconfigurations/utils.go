@@ -737,6 +737,8 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 		return &applyconfigurationscorev1.LocalObjectReferenceApplyConfiguration{}
 	case corev1.SchemeGroupVersion.WithKind("LocalVolumeSource"):
 		return &applyconfigurationscorev1.LocalVolumeSourceApplyConfiguration{}
+	case corev1.SchemeGroupVersion.WithKind("ModifyVolumeStatus"):
+		return &applyconfigurationscorev1.ModifyVolumeStatusApplyConfiguration{}
 	case corev1.SchemeGroupVersion.WithKind("Namespace"):
 		return &applyconfigurationscorev1.NamespaceApplyConfiguration{}
 	case corev1.SchemeGroupVersion.WithKind("NamespaceCondition"):
@@ -1347,6 +1349,12 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 		return &applyconfigurationsnetworkingv1alpha1.IPAddressSpecApplyConfiguration{}
 	case networkingv1alpha1.SchemeGroupVersion.WithKind("ParentReference"):
 		return &applyconfigurationsnetworkingv1alpha1.ParentReferenceApplyConfiguration{}
+	case networkingv1alpha1.SchemeGroupVersion.WithKind("ServiceCIDR"):
+		return &applyconfigurationsnetworkingv1alpha1.ServiceCIDRApplyConfiguration{}
+	case networkingv1alpha1.SchemeGroupVersion.WithKind("ServiceCIDRSpec"):
+		return &applyconfigurationsnetworkingv1alpha1.ServiceCIDRSpecApplyConfiguration{}
+	case networkingv1alpha1.SchemeGroupVersion.WithKind("ServiceCIDRStatus"):
+		return &applyconfigurationsnetworkingv1alpha1.ServiceCIDRStatusApplyConfiguration{}
 
 		// Group=networking.k8s.io, Version=v1beta1
 	case networkingv1beta1.SchemeGroupVersion.WithKind("HTTPIngressPath"):
@@ -1565,6 +1573,8 @@ func ForKind(kind schema.GroupVersionKind) interface{} {
 		return &applyconfigurationsstoragev1alpha1.VolumeAttachmentSpecApplyConfiguration{}
 	case storagev1alpha1.SchemeGroupVersion.WithKind("VolumeAttachmentStatus"):
 		return &applyconfigurationsstoragev1alpha1.VolumeAttachmentStatusApplyConfiguration{}
+	case storagev1alpha1.SchemeGroupVersion.WithKind("VolumeAttributesClass"):
+		return &applyconfigurationsstoragev1alpha1.VolumeAttributesClassApplyConfiguration{}
 	case storagev1alpha1.SchemeGroupVersion.WithKind("VolumeError"):
 		return &applyconfigurationsstoragev1alpha1.VolumeErrorApplyConfiguration{}
 

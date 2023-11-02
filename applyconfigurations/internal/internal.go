@@ -5564,6 +5564,16 @@ var schemaYAML = typed.YAMLObject(`types:
       type:
         scalar: string
       default: ""
+- name: io.k8s.api.core.v1.ModifyVolumeStatus
+  map:
+    fields:
+    - name: status
+      type:
+        scalar: string
+      default: ""
+    - name: targetVolumeAttributesClassName
+      type:
+        scalar: string
 - name: io.k8s.api.core.v1.NFSVolumeSource
   map:
     fields:
@@ -6040,6 +6050,9 @@ var schemaYAML = typed.YAMLObject(`types:
     - name: storageClassName
       type:
         scalar: string
+    - name: volumeAttributesClassName
+      type:
+        scalar: string
     - name: volumeMode
       type:
         scalar: string
@@ -6079,6 +6092,12 @@ var schemaYAML = typed.YAMLObject(`types:
           elementRelationship: associative
           keys:
           - type
+    - name: currentVolumeAttributesClassName
+      type:
+        scalar: string
+    - name: modifyVolumeStatus
+      type:
+        namedType: io.k8s.api.core.v1.ModifyVolumeStatus
     - name: phase
       type:
         scalar: string
@@ -6199,6 +6218,9 @@ var schemaYAML = typed.YAMLObject(`types:
     - name: storageos
       type:
         namedType: io.k8s.api.core.v1.StorageOSPersistentVolumeSource
+    - name: volumeAttributesClassName
+      type:
+        scalar: string
     - name: volumeMode
       type:
         scalar: string
@@ -10566,6 +10588,47 @@ var schemaYAML = typed.YAMLObject(`types:
     - name: resource
       type:
         scalar: string
+- name: io.k8s.api.networking.v1alpha1.ServiceCIDR
+  map:
+    fields:
+    - name: apiVersion
+      type:
+        scalar: string
+    - name: kind
+      type:
+        scalar: string
+    - name: metadata
+      type:
+        namedType: io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta
+      default: {}
+    - name: spec
+      type:
+        namedType: io.k8s.api.networking.v1alpha1.ServiceCIDRSpec
+      default: {}
+    - name: status
+      type:
+        namedType: io.k8s.api.networking.v1alpha1.ServiceCIDRStatus
+      default: {}
+- name: io.k8s.api.networking.v1alpha1.ServiceCIDRSpec
+  map:
+    fields:
+    - name: cidrs
+      type:
+        list:
+          elementType:
+            scalar: string
+          elementRelationship: atomic
+- name: io.k8s.api.networking.v1alpha1.ServiceCIDRStatus
+  map:
+    fields:
+    - name: conditions
+      type:
+        list:
+          elementType:
+            namedType: io.k8s.apimachinery.pkg.apis.meta.v1.Condition
+          elementRelationship: associative
+          keys:
+          - type
 - name: io.k8s.api.networking.v1beta1.HTTPIngressPath
   map:
     fields:
@@ -12214,6 +12277,28 @@ var schemaYAML = typed.YAMLObject(`types:
     - name: detachError
       type:
         namedType: io.k8s.api.storage.v1alpha1.VolumeError
+- name: io.k8s.api.storage.v1alpha1.VolumeAttributesClass
+  map:
+    fields:
+    - name: apiVersion
+      type:
+        scalar: string
+    - name: driverName
+      type:
+        scalar: string
+      default: ""
+    - name: kind
+      type:
+        scalar: string
+    - name: metadata
+      type:
+        namedType: io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta
+      default: {}
+    - name: parameters
+      type:
+        map:
+          elementType:
+            scalar: string
 - name: io.k8s.api.storage.v1alpha1.VolumeError
   map:
     fields:
