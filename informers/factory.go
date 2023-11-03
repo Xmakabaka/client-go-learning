@@ -54,9 +54,9 @@ import (
 type SharedInformerOption func(*sharedInformerFactory) *sharedInformerFactory
 
 type sharedInformerFactory struct {
-	client           kubernetes.Interface
+	client           kubernetes.Interface  //k8s connect
 	namespace        string
-	tweakListOptions internalinterfaces.TweakListOptionsFunc
+	tweakListOptions internalinterfaces.TweakListOptionsFunc //调整列表参数
 	lock             sync.Mutex
 	defaultResync    time.Duration
 	customResync     map[reflect.Type]time.Duration
@@ -65,7 +65,7 @@ type sharedInformerFactory struct {
 	informers map[reflect.Type]cache.SharedIndexInformer
 	// startedInformers is used for tracking which informers have been started.
 	// This allows Start() to be called multiple times safely.
-	startedInformers map[reflect.Type]bool
+	startedInformers map[reflect.Type]bool //记录已经启动的informers，防止重复使用
 	// wg tracks how many goroutines were started.
 	wg sync.WaitGroup
 	// shuttingDown is true when Shutdown has been called. It may still be running
