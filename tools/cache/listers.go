@@ -40,10 +40,12 @@ func ListAll(store Store, selector labels.Selector, appendFn AppendFunc) error {
 			appendFn(m)
 			continue
 		}
+		//返回Api类型的指针
 		metadata, err := meta.Accessor(m)
 		if err != nil {
 			return err
 		}
+		//labels.Set => map[string]string
 		if selector.Matches(labels.Set(metadata.GetLabels())) {
 			appendFn(m)
 		}
