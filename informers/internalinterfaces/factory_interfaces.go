@@ -26,7 +26,7 @@ import (
 	kubernetes "k8s.io/client-go/kubernetes"
 	cache "k8s.io/client-go/tools/cache"
 )
-
+// 初始化各资源对象的函数
 // NewInformerFunc takes kubernetes.Interface and time.Duration to return a SharedIndexInformer.
 type NewInformerFunc func(kubernetes.Interface, time.Duration) cache.SharedIndexInformer
 

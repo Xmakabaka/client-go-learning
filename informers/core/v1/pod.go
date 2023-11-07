@@ -58,17 +58,19 @@ func NewPodInformer(client kubernetes.Interface, namespace string, resyncPeriod 
 func NewFilteredPodInformer(client kubernetes.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
+			// 根据条件进行 List
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CoreV1().Pods(namespace).List(context.TODO(), options)
+				return client.CoreV1().Pods(namespace).List(context.TODO(), options) //发起 list 请求
 			},
+			// 根据条件进行 Watch
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.CoreV1().Pods(namespace).Watch(context.TODO(), options)
+				return client.CoreV1().Pods(namespace).Watch(context.TODO(), options) //发起 watch 请求
 			},
 		},
 		&corev1.Pod{},
@@ -81,6 +83,7 @@ func (f *podInformer) defaultInformer(client kubernetes.Interface, resyncPeriod 
 	return NewFilteredPodInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
+//获取 podInformer对象的入口
 func (f *podInformer) Informer() cache.SharedIndexInformer {
 	return f.factory.InformerFor(&corev1.Pod{}, f.defaultInformer)
 }

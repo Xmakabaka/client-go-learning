@@ -59,13 +59,13 @@ type sharedInformerFactory struct {
 	tweakListOptions internalinterfaces.TweakListOptionsFunc //调整列表参数
 	lock             sync.Mutex
 	defaultResync    time.Duration
-	customResync     map[reflect.Type]time.Duration
-	transform        cache.TransformFunc
+	customResync     map[reflect.Type]time.Duration //各资源的同步时间
+	transform        cache.TransformFunc //看说明
 
 	informers map[reflect.Type]cache.SharedIndexInformer
 	// startedInformers is used for tracking which informers have been started.
 	// This allows Start() to be called multiple times safely.
-	startedInformers map[reflect.Type]bool //记录已经启动的informers，防止重复使用
+	startedInformers map[reflect.Type]bool //记录已经启动的informers，防止重复使用（可以安全的多次调用 Start()）
 	// wg tracks how many goroutines were started.
 	wg sync.WaitGroup
 	// shuttingDown is true when Shutdown has been called. It may still be running
@@ -141,7 +141,7 @@ func NewSharedInformerFactoryWithOptions(client kubernetes.Interface, defaultRes
 	return factory
 }
 
-// 启动 informer
+// 启动 informer，并对已经启动过的 informerType 标记为 true
 func (f *sharedInformerFactory) Start(stopCh <-chan struct{}) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
@@ -176,6 +176,7 @@ func (f *sharedInformerFactory) Shutdown() {
 	f.wg.Wait()
 }
 
+// 这函数的作用？
 func (f *sharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool {
 	// 闭包函数可以避免死锁,这是一次 deepCopy
 	informers := func() map[reflect.Type]cache.SharedIndexInformer {
@@ -199,11 +200,10 @@ func (f *sharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[ref
 }
 
 // InformerFor returns the SharedIndexInformer for obj using an internal
-// client.
 func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc) cache.SharedIndexInformer {
 	f.lock.Lock()
 	defer f.lock.Unlock()
-
+    // eg: *v1.Pod（case 测试所得）, 存在直接返回
 	informerType := reflect.TypeOf(obj)
 	informer, exists := f.informers[informerType]
 	if exists {
@@ -215,13 +215,16 @@ func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internal
 		resyncPeriod = f.defaultResync
 	}
 
+	// 各资源的 defaultInformer (Func)
 	informer = newFunc(f.client, resyncPeriod)
 	informer.SetTransform(f.transform)
+	// 已经加载过了的放进 map 中
 	f.informers[informerType] = informer
 
 	return informer
 }
 
+// 所有资源类型的公共 informer 部分
 // SharedInformerFactory provides shared informers for resources in all known
 // API group versions.
 //

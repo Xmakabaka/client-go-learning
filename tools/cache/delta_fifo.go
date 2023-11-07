@@ -162,6 +162,7 @@ type TransformFunc func(interface{}) (interface{}, error)
 // DeltaType is the type of a change (addition, deletion, etc)
 type DeltaType string
 
+// 事件类型
 // Change type definition
 const (
 	Added   DeltaType = "Added"
@@ -287,8 +288,10 @@ func (f *DeltaFIFO) KeyOf(obj interface{}) (string, error) {
 		if len(d) == 0 {
 			return "", KeyError{obj, ErrZeroLengthDeltasObject}
 		}
-		obj = d.Newest().Object
+		obj = d.Newest().Object // return &d[n-1]
 	}
+	// 如果删除了对象但在与 apiserver 断开连接时错过了监视删除事件，则 DeletedFinalStateUnknown 会被放入 DeltaFIFO 中。
+	// 在这种情况下，我们不知道对象的最终 “静止” 状态，因此包含的 “Obj” 有可能是过时的。
 	if d, ok := obj.(DeletedFinalStateUnknown); ok {
 		return d.Key, nil
 	}
