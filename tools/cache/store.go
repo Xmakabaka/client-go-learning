@@ -106,6 +106,7 @@ type ExplicitKey string
 //
 // TODO maybe some day?: change Store to be keyed differently
 func MetaNamespaceKeyFunc(obj interface{}) (string, error) {
+	// 返回 Namespace/Name
 	if key, ok := obj.(ExplicitKey); ok {
 		return string(key), nil
 	}
@@ -113,6 +114,7 @@ func MetaNamespaceKeyFunc(obj interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	// 拼接 objName.Namespace + "/" + objName.Name
 	return objName.String(), nil
 }
 
@@ -140,6 +142,7 @@ func MetaObjectToName(obj metav1.Object) ObjectName {
 // TODO: replace key-as-string with a key-as-struct so that this
 // packing/unpacking won't be necessary.
 func SplitMetaNamespaceKey(key string) (namespace, name string, err error) {
+	// 与 MetaNamespaceKeyFunc 是一对反函数， 拆 key
 	parts := strings.Split(key, "/")
 	switch len(parts) {
 	case 1:
@@ -156,6 +159,7 @@ func SplitMetaNamespaceKey(key string) (namespace, name string, err error) {
 // `*cache` implements Indexer in terms of a ThreadSafeStore and an
 // associated KeyFunc.
 type cache struct {
+	// ThreadSafeStore 是一个允许对存储后端进行并发索引访问的接口。 它类似于 Indexer，但（不一定）不知道如何从给定对象中提取 Store key。
 	// cacheStorage bears the burden of thread safety for the cache
 	cacheStorage ThreadSafeStore
 	// keyFunc is used to make the key for objects stored in and retrieved from items, and
@@ -163,6 +167,7 @@ type cache struct {
 	keyFunc KeyFunc
 }
 
+// 所以，这行代码的目的是创建一个变量，用于检查 "cache" 类型是否实现了 "Store" 接口，并且不需要在后续代码中直接引用这个变量。这是一种用下划线 "_" 表示不使用变量但仍然进行类型检查的常见用法。
 var _ Store = &cache{}
 
 // Add inserts an item into the cache.
@@ -197,6 +202,7 @@ func (c *cache) Delete(obj interface{}) error {
 
 // List returns a list of all the items.
 // List is completely threadsafe as long as you treat all items as immutable.
+// List 返回所有项目的列表。 只要您将所有项目视为不可变，列表就是完全线程安全的。
 func (c *cache) List() []interface{} {
 	return c.cacheStorage.List()
 }
@@ -214,6 +220,7 @@ func (c *cache) GetIndexers() Indexers {
 
 // Index returns a list of items that match on the index function
 // Index is thread-safe so long as you treat all items as immutable
+// Index 返回与索引函数匹配的项目列表 只要您将所有项目视为不可变，索引就是线程安全的
 func (c *cache) Index(indexName string, obj interface{}) ([]interface{}, error) {
 	return c.cacheStorage.Index(indexName, obj)
 }

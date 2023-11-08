@@ -60,6 +60,7 @@ type ThreadSafeStore interface {
 }
 
 // storeIndex implements the indexing functionality for Store interface
+// storeIndex 实现 Store 接口的索引功能
 type storeIndex struct {
 	// indexers maps a name to an IndexFunc
 	indexers Indexers
@@ -206,12 +207,13 @@ func (i *storeIndex) deleteKeyFromIndex(key, indexValue string, index Index) {
 }
 
 // threadSafeMap implements ThreadSafeStore
+// 实现了 ThreadSafeStore
 type threadSafeMap struct {
 	lock  sync.RWMutex
-	items map[string]interface{}
+	items map[string]interface{} // 存储 key 对应的具体对象
 
 	// index implements the indexing functionality
-	index *storeIndex
+	index *storeIndex // 存储索引， and ... TODO
 }
 
 func (c *threadSafeMap) Add(key string, obj interface{}) {
@@ -221,7 +223,7 @@ func (c *threadSafeMap) Add(key string, obj interface{}) {
 func (c *threadSafeMap) Update(key string, obj interface{}) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	oldObject := c.items[key]
+	oldObject := c.items[key] //确定是存在的
 	c.items[key] = obj
 	c.index.updateIndices(oldObject, obj, key)
 }
@@ -242,10 +244,11 @@ func (c *threadSafeMap) Get(key string) (item interface{}, exists bool) {
 	return item, exists
 }
 
+// List 返回 map 的 value
 func (c *threadSafeMap) List() []interface{} {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	list := make([]interface{}, 0, len(c.items))
+	list := make([]interface{}, 0, len(c.items)) //指定长度的好处：提前分配内存，减少运行时动态分配内存的次数，提高性能，增加代码可读性
 	for _, item := range c.items {
 		list = append(list, item)
 	}
@@ -256,6 +259,8 @@ func (c *threadSafeMap) List() []interface{} {
 // in the threadSafeMap.
 func (c *threadSafeMap) ListKeys() []string {
 	c.lock.RLock()
+	// RWMutex 的 RLock 不会阻止其他读操作（增加读锁的计数），但会阻止写操作，以确保在写操作期间数据的完整性和一致性。这是RWMutex的核心特性，允许多个读操作同时进行，但只有在没有任何读锁或写锁的情况下才能获取写锁。
+	// "可重入"（又称"可递归"）是指在一个程序或函数中，允许同一线程或进程多次获取已经持有的锁或资源，而不会发生死锁或其他问题。一个可重入锁允许同一线程多次获取锁，而不会导致死锁。这对于递归函数或函数调用其他使用相同锁的函数非常有用，因为它允许函数在递归期间多次获取和释放锁，而不会导致竞争条件或死锁。
 	defer c.lock.RUnlock()
 	list := make([]string, 0, len(c.items))
 	for key := range c.items {
@@ -270,7 +275,7 @@ func (c *threadSafeMap) Replace(items map[string]interface{}, resourceVersion st
 	c.items = items
 
 	// rebuild any index
-	c.index.reset()
+	c.index.reset() // 重新赋值空的  c.index.indices = Indices{}
 	for key, item := range c.items {
 		c.index.updateIndices(nil, item, key)
 	}
