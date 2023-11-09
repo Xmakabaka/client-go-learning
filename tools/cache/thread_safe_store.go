@@ -63,8 +63,10 @@ type ThreadSafeStore interface {
 // storeIndex 实现 Store 接口的索引功能
 type storeIndex struct {
 	// indexers maps a name to an IndexFunc
+	//Index函数 set
 	indexers Indexers
 	// indices maps a name to an Index
+	// IndexMap 将索引值映射到存储中与该值匹配的一组键
 	indices Indices
 }
 
