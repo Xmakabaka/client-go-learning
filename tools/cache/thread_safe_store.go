@@ -139,18 +139,19 @@ func (i *storeIndex) addIndexers(newIndexers Indexers) error {
 }
 
 // updateIndices modifies the objects location in the managed indexes:
-// - for create you must provide only the newObj
-// - for update you must provide both the oldObj and the newObj
-// - for delete you must provide only the oldObj
+// - for create you must provide only the newObj 创建（Add）操作
+// - for update you must provide both the oldObj and the newObj 更新（Update）操作
+// - for delete you must provide only the oldObj 删除（delete）操作
 // updateIndices must be called from a function that already has a lock on the cache
 func (i *storeIndex) updateIndices(oldObj interface{}, newObj interface{}, key string) {
 	var oldIndexValues, indexValues []string
 	var err error
+	// cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc} => namespace: func::GetNamespace()
 	for name, indexFunc := range i.indexers {
 		if oldObj != nil {
 			oldIndexValues, err = indexFunc(oldObj)
 		} else {
-			oldIndexValues = oldIndexValues[:0]
+			oldIndexValues = oldIndexValues[:0] //[]
 		}
 		if err != nil {
 			panic(fmt.Errorf("unable to calculate an index entry for key %q on index %q: %v", key, name, err))
@@ -159,23 +160,26 @@ func (i *storeIndex) updateIndices(oldObj interface{}, newObj interface{}, key s
 		if newObj != nil {
 			indexValues, err = indexFunc(newObj)
 		} else {
-			indexValues = indexValues[:0]
+			indexValues = indexValues[:0] // []
 		}
 		if err != nil {
 			panic(fmt.Errorf("unable to calculate an index entry for key %q on index %q: %v", key, name, err))
 		}
 
-		index := i.indices[name]
+		index := i.indices[name] // => i.indices[<namespace>]
+		// 不存在直接创建一个空的
 		if index == nil {
 			index = Index{}
 			i.indices[name] = index
 		}
 
+		// 键值名称 (namespace) 没有任何变化
 		if len(indexValues) == 1 && len(oldIndexValues) == 1 && indexValues[0] == oldIndexValues[0] {
 			// We optimize for the most common case where indexFunc returns a single value which has not been changed
 			continue
 		}
 
+		// key = namespace/obj-name | value = namespace | index =  map[string]sets.String（泛型）
 		for _, value := range oldIndexValues {
 			i.deleteKeyFromIndex(key, value, index)
 		}
@@ -185,6 +189,7 @@ func (i *storeIndex) updateIndices(oldObj interface{}, newObj interface{}, key s
 	}
 }
 
+// key = namespace/obj-name
 func (i *storeIndex) addKeyToIndex(key, indexValue string, index Index) {
 	set := index[indexValue]
 	if set == nil {
@@ -203,6 +208,7 @@ func (i *storeIndex) deleteKeyFromIndex(key, indexValue string, index Index) {
 	// If we don't delete the set when zero, indices with high cardinality
 	// short lived resources can cause memory to increase over time from
 	// unused empty sets. See `kubernetes/kubernetes/issues/84959`.
+	// 如果不在零时删除集合，则具有高基数的短期资源的索引可能会导致内存随着时间的推移从未使用的空集合中增加
 	if len(set) == 0 {
 		delete(index, indexValue)
 	}
@@ -225,14 +231,15 @@ func (c *threadSafeMap) Add(key string, obj interface{}) {
 func (c *threadSafeMap) Update(key string, obj interface{}) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	oldObject := c.items[key] //确定是存在的
-	c.items[key] = obj
-	c.index.updateIndices(oldObject, obj, key)
+	oldObject := c.items[key]                  //判断是否能取到旧的对象
+	c.items[key] = obj                         //更新为当前对象
+	c.index.updateIndices(oldObject, obj, key) //处理索引
 }
 
 func (c *threadSafeMap) Delete(key string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
+	// 存在 oldObj 才可删除
 	if obj, exists := c.items[key]; exists {
 		c.index.updateIndices(obj, nil, key)
 		delete(c.items, key)
@@ -265,6 +272,7 @@ func (c *threadSafeMap) ListKeys() []string {
 	// "可重入"（又称"可递归"）是指在一个程序或函数中，允许同一线程或进程多次获取已经持有的锁或资源，而不会发生死锁或其他问题。一个可重入锁允许同一线程多次获取锁，而不会导致死锁。这对于递归函数或函数调用其他使用相同锁的函数非常有用，因为它允许函数在递归期间多次获取和释放锁，而不会导致竞争条件或死锁。
 	defer c.lock.RUnlock()
 	list := make([]string, 0, len(c.items))
+	// 只获取 key
 	for key := range c.items {
 		list = append(list, key)
 	}
