@@ -105,6 +105,7 @@ type ExplicitKey string
 // necessarily strings.
 //
 // TODO maybe some day?: change Store to be keyed differently
+// 计算 indices=>map[key]sets{...} 中的 ns/meta-name:{}
 func MetaNamespaceKeyFunc(obj interface{}) (string, error) {
 	// 返回 Namespace/Name
 	if key, ok := obj.(ExplicitKey); ok {
@@ -221,6 +222,7 @@ func (c *cache) GetIndexers() Indexers {
 // Index returns a list of items that match on the index function
 // Index is thread-safe so long as you treat all items as immutable
 // Index 返回与索引函数匹配的项目列表 只要您将所有项目视为不可变，索引就是线程安全的
+// Index 默认传字符串 'namespace', 返回与 obj 在同一 ns 下的所有资源对象
 func (c *cache) Index(indexName string, obj interface{}) ([]interface{}, error) {
 	return c.cacheStorage.Index(indexName, obj)
 }

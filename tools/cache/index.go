@@ -79,10 +79,12 @@ func IndexFuncToKeyFuncAdapter(indexFunc IndexFunc) KeyFunc {
 
 const (
 	// NamespaceIndex is the lookup name for the most common index function, which is to index by the namespace field.
+	// index对象的默认索引 key 值
 	NamespaceIndex string = "namespace"
 )
 
 // MetaNamespaceIndexFunc is a default index function that indexes based on an object's namespace
+// 返回对象的 ns-name
 func MetaNamespaceIndexFunc(obj interface{}) ([]string, error) {
 	meta, err := meta.Accessor(obj)
 	if err != nil {
@@ -92,10 +94,15 @@ func MetaNamespaceIndexFunc(obj interface{}) ([]string, error) {
 }
 
 // Index maps the indexed value to a set of keys in the store that match on that value
+// map[ns-name] = map[ns-name/pod1:{} ns-name/pod2:{}]]]
 type Index map[string]sets.String
 
 // Indexers maps a name to an IndexFunc
+// default , map[cache.NamespaceIndex:cache.MetaNamespaceIndexFunc] => map[namespace: GetNamespace(obj)]
+// 提供了计算 Indices map key 的方法, 默认就是 namespace
 type Indexers map[string]IndexFunc
 
 // Indices maps a name to an Index
+// eg1: map[namespace:map[ns-name:map[ns-name/pod1:{} ... ns-name/pod2:{} ... ns-name/cm-1:{}]]]
+// eg2: map[namespace:map[kk:map[kk/cm-1:{} kk/pod1:{} kk/pod2:{}]]]
 type Indices map[string]Index
