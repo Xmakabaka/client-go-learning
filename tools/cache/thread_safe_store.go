@@ -105,6 +105,7 @@ func (i *storeIndex) getKeysFromIndex(indexName string, obj interface{}) (sets.S
 	return storeKeySet, nil
 }
 
+// 获取指定 namespace 底下的所有 set
 func (i *storeIndex) getKeysByIndex(indexName, indexedValue string) (sets.String, error) {
 	indexFunc := i.indexers[indexName]
 	if indexFunc == nil {
@@ -115,6 +116,7 @@ func (i *storeIndex) getKeysByIndex(indexName, indexedValue string) (sets.String
 	return index[indexedValue], nil
 }
 
+// 返回了所有的 namespace
 func (i *storeIndex) getIndexValues(indexName string) []string {
 	index := i.indices[indexName]
 	names := make([]string, 0, len(index))
@@ -125,11 +127,12 @@ func (i *storeIndex) getIndexValues(indexName string) []string {
 }
 
 func (i *storeIndex) addIndexers(newIndexers Indexers) error {
+	// sets.StringKeySet 将 map 的 key 做成 Set
 	oldKeys := sets.StringKeySet(i.indexers)
 	newKeys := sets.StringKeySet(newIndexers)
 
 	if oldKeys.HasAny(newKeys.List()...) {
-		return fmt.Errorf("indexer conflict: %v", oldKeys.Intersection(newKeys))
+		return fmt.Errorf("indexer conflict: %v", oldKeys.Intersection(newKeys)) //交集
 	}
 
 	for k, v := range newIndexers {
@@ -239,7 +242,7 @@ func (c *threadSafeMap) Update(key string, obj interface{}) {
 func (c *threadSafeMap) Delete(key string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	// 存在 oldObj 才可删除
+	// 存在 oldObj 才可删除， newObj 为空可以达到删除效果
 	if obj, exists := c.items[key]; exists {
 		c.index.updateIndices(obj, nil, key)
 		delete(c.items, key)
@@ -253,7 +256,7 @@ func (c *threadSafeMap) Get(key string) (item interface{}, exists bool) {
 	return item, exists
 }
 
-// List 返回 map 的 value
+// List 返回存储的所有的实例对象
 func (c *threadSafeMap) List() []interface{} {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
@@ -279,6 +282,7 @@ func (c *threadSafeMap) ListKeys() []string {
 	return list
 }
 
+// Replace 全量替换存储的对象
 func (c *threadSafeMap) Replace(items map[string]interface{}, resourceVersion string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -339,6 +343,7 @@ func (c *threadSafeMap) IndexKeys(indexName, indexedValue string) ([]string, err
 	return set.List(), nil
 }
 
+// ListIndexFuncValues 返回 IndexFunc 计算出的 indexValues 的列表， 即  Indices[namespace]:map 的所有 key (namespace)
 func (c *threadSafeMap) ListIndexFuncValues(indexName string) []string {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
@@ -350,6 +355,7 @@ func (c *threadSafeMap) GetIndexers() Indexers {
 	return c.index.indexers
 }
 
+// AddIndexers 在 index 未有资源存储前，继续增加 indexFunc
 func (c *threadSafeMap) AddIndexers(newIndexers Indexers) error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -357,7 +363,7 @@ func (c *threadSafeMap) AddIndexers(newIndexers Indexers) error {
 	if len(c.items) > 0 {
 		return fmt.Errorf("cannot add indexers to running index")
 	}
-
+	// 追加新的 Indexers
 	return c.index.addIndexers(newIndexers)
 }
 
